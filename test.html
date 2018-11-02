@@ -1,0 +1,202 @@
+﻿<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        .div{
+         width:100px;
+         height:100px;
+         background-color:red;
+         -webkit-clip-path:polygon(0px 0px,20% 0%,20% 20%,100% 20%,100% 100%,0 100%);
+          
+        /* clip-path: (0px 0px,20% 0%,20% 20%,100% 20%,100% 100%,0 100%);
+        clip: rect(0px 0px,20% 0%,20% 20%,100% 20%,100% 100%,0 100%); */
+        }
+     </style>
+
+</head>
+
+<body>
+    <div class="div"></div>
+    <div id="app1">
+        <p>{{data.a}}</p>
+        <button v-on:click="a=9">change it</button>
+    </div>
+    <div id="app2">
+        <span v-once>这个将不会改变: {{message}}</span>
+        <p>Computed reversed message: "{{ reversedMessage }}"</p>
+        <p>datetime now: "{{ now }}"</p>
+        <br />
+        <span>这个会改变: {{message}} {{message.split('l')}}</span>
+        <p v-if="seen">现在你看到我了</p>
+        <a v-bind:href="url">链接</a>
+        <p>Using mustaches: {{rawHtml}}</p>
+        <p>Using v-html directive: <span v-html="rawHtml"></span></p>
+        <button @click="message='fsadfas'">change it</button>
+        <div class="static" v-bind:class="{ active: isActive, 'text-danger': hasError }" v-bind:class="classObject">
+            class 设置
+        </div>
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script type="text/javascript">
+        //极简模式
+        var Animal = {
+            CreateNew: function () {
+                var _animal = {};
+                _animal.sleep = function () {
+                    console.log('sleep');
+                }
+                return _animal;
+            }
+        };
+
+        var Cat = {
+            soFund: 'miao',
+            CreateNew: function () {
+                var _cat = Animal.CreateNew(); //继承
+                _cat.makeSound = function () {
+                    console.log('miao');
+                }
+                return _cat;
+            }
+        }
+        window.onload = () => {
+            var cat = Cat.CreateNew();
+            cat.makeSound();
+            cat.sleep();
+        }
+
+        //Object.freeze(data);
+        var vm1 = new Vue({
+            el: '#app1',
+            data: data = {
+                a: 1
+            },
+            create: function () {
+                console.log('a is:' + this.a);
+            }
+        });
+
+        // $watch 是一个实例方法
+        vm1.$watch('a', function (newValue, oldValue) {
+            // 这个回调将在 `vm.a` 改变后调用
+            console.log('newValue:' + newValue);
+            console.log('oldValue:' + oldValue);
+        });
+
+        var vm2 = new Vue({
+            el: '#app2',
+            data: {
+                message: 'lianghongju',
+                rawHtml: '<div>21312<div>',
+                seen: false,
+                url: 'http://baidu.com',
+                firstName: 'Foo',
+                lastName: 'Bar',
+                isActive: true,
+                hasError: true,
+                error: null
+            },
+            computed: {
+                // 计算属性的 getter
+                reversedMessage: function () {
+                    // `this` 指向 vm2 实例
+                    return this.message.split('').reverse().join('');
+                },
+                now: function () {
+                    return Date.now(); //计算属性是基于它们的依赖进行缓存的。只在相关依赖发生改变时它们才会重新求值 使用vm2.now访问时不会实时更新。
+                },
+                // fullName: function () {
+                //     return this.firstName + this.lastName;
+                // }
+
+                fullName: {
+                    // getter
+                    get: function () {
+                        return this.firstName + ' ' + this.lastName
+                    },
+                    // setter
+                    set: function (newValue) {
+                        var names = newValue.split(' ')
+                        this.firstName = names[0]
+                        this.lastName = names[names.length - 1]
+                    }
+                },
+                classObject: function () {
+                    return {
+                        active1: this.isActive && !this.error,
+                        'text-danger': this.error && this.error.type === 'fatal'
+                    }
+                }
+            },
+            methods: {
+                // reversedMessage: function () {
+                //     return this.message.split('').reverse().join('');
+                // }
+                now1: () => Date.now()
+            }
+        });
+    </script>
+    <script>
+        window.onload = () => {
+            startgps();
+        }
+        //获取地理位置方法
+        function startgps() {
+            //判断是否支持
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(showgps,
+                    //navigator.geolocation.getCurrentPosition(showgps, //成功回调函数
+                    function (error) //失败回调函数
+                    {
+                        console.log("获取位置失败，开始执行失败回调函数");
+                        getPositionError(error);
+                        //showgps();
+                        // showAlert("获取地理位置出错");
+                    }, {
+                        enableHighAcuracy: true,
+                        // timeout: 1000,
+                        maximumAge: 0
+                    }); // 这里设置超时为1000毫秒，即1秒
+            } else {
+                console.log("navigator.geolocation获取结果为false");
+                //showgps();
+            }
+        }
+
+        function showgps(position) {
+            console.log(position);
+            console.log("获取位置成功，开始执行成功回调函数");
+            let latitude = position.coords.latitude,
+                longitude = position.coords.longitude;
+            if (position) {
+                document.querySelector(".lat")[0].value = latitude;
+                document.querySelector("lng")[0].value = longitude;
+                console.log("获取到的地理位置为latitude：" + latitude + "---longitude=" + longitude);
+            } else {
+                console.log("位置获取不到，请确认您打开了定位服务！");
+                document.querySelector("lat")[0].value = latitude;
+                document.querySelector("lng")[0].value = longitude;
+                console.log("定位服务没有打开时获取到的地理位置latitude：" + latitude + "---longitude=" + longitude);
+            }
+        }
+
+        function getPositionError(error) {
+            console.log(error);
+            switch (error.code) {
+                case error.TIMEOUT:
+                    console.log("连接超时，请重试");
+                    break;
+                case error.PERMISSION_DENIED:
+                    console.log("您拒绝了使用位置共享服务，查询已取消");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    console.log("亲爱的火星网友，非常抱歉，我们暂时无法为您所在的星球提供位置服务");
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
